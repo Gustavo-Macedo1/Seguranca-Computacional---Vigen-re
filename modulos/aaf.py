@@ -1,7 +1,9 @@
-from funcoes_auxiliares.auxiliares import *
+import streamlit as st
+import pandas as pd
+from modulos.auxiliares import *
+from modulos.descriptografia import *
+from modulos.criptografia import *
 from matplotlib import pyplot as plt
-from criptografia import *
-from descriptografia import *
 
 def checa_coincidencias(texto1, texto2):
     coincidencias = 0
@@ -30,12 +32,12 @@ def grafico_coincidencias(texto_cifrado):
     x = list(range(len(texto_cifrado) - 1))[:40]
     y = len_chave(texto_cifrado)[:40]
 
-    plt.figure(figsize=(30, 6))
-    plt.bar(x, y)
-    plt.show()
+    return x, y
 
-def cria_caixas(texto_cifrado):
-    n = int(input("Digite o tamanho da chave: "))
+
+def cria_caixas(texto_cifrado, n=None):
+    if n == None:
+        n = int(input("Digite o tamanho da chave: "))
     rotulos = list(range(n))
     caixas = {}
 
@@ -122,10 +124,28 @@ def adicionar_espacos(texto, posicoes):
     
     return texto
 
+def aaf_streamlit(texto_cifrado, lingua):
+    posicoes = posicoes_espaco(texto_cifrado)
+    texto_cifrado = texto_cifrado.replace(" ", "")
+    x, y = grafico_coincidencias(texto_cifrado)
+    fig = pd.DataFrame({"Posição": x, "Coincidências": y}).set_index("Posição")
+    st.bar_chart(fig)
+    n = st.number_input("Tamanho estimado da chave:", min_value=1, max_value=20, value=None, key="tamanho_chave")
+    if n != None:
+        caixas = cria_caixas(texto_cifrado, n)
+        chave = obtem_chave(caixas, lingua)
+        descriptografado = descriptografar(texto_cifrado, chave)
+        if descriptografado and caixas:
+            st.markdown(f"**A chave é:** {chave}")
+            st.markdown(f"**Texto descriptografado:** {adicionar_espacos(descriptografado, posicoes)}")
+    
+        return chave
+
 def aaf(texto_cifrado, lingua):
     posicoes = posicoes_espaco(texto_cifrado)
     texto_cifrado = texto_cifrado.replace(" ", "")
-    grafico_coincidencias(texto_cifrado)
+    # fig = grafico_coincidencias(texto_cifrado)
+    # st.pyplot(fig, clear_figure=True)
     caixas = cria_caixas(texto_cifrado)
     chave = obtem_chave(caixas, lingua)
     descriptografado = descriptografar(texto_cifrado, chave)
@@ -138,7 +158,7 @@ def aaf(texto_cifrado, lingua):
 ### ------------ TESTE ------------ ###
 
 # texto_exemplo = "A Russia lancou na madrugada deste domingo o maior bombardeio com drones e misseis da guerra contra a Ucrania matando pelo menos nn pessoas e ferindo dezenas em horas de ataques a cidades e vilarejos por todo o pais disseram autoridades ucranianas O ataque ocorreu mesmo com a realizacao da maior troca de prisioneiros da guerra um raro momento de cooperacao entre ambas as nacoes"
-# key = "carro"
+# key = "cachorro"
 # cifrado = criptografar(texto_exemplo, key)
 # descriptografado = descriptografar(cifrado, key)
 # aaf(cifrado, "pt")
