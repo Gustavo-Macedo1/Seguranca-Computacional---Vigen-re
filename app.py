@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from modulos.criptografia import *
-from modulos.descriptografia import *
+from modulos.descriptografia import descriptografar
 from modulos.aaf import *
 from modulos.auxiliares import *
 
